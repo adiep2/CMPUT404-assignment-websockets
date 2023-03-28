@@ -43,7 +43,6 @@ class World:
 
     def set(self, entity, data):
         self.space[entity] = data
-        self.update_listeners( entity )
 
     def update_listeners(self, entity):
         '''update the set listeners'''
