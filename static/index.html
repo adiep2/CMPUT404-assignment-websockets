@@ -47,15 +47,20 @@ world = {};
 //XXX: TODO Make this prettier!
 function drawCircle(context,entity) {
     with(context) {
-        beginPath();                
+        beginPath();              
         lineWidth = 3;
         var x = entity["x"];
         var y = entity["y"];
-        //moveTo(x,y);
         fillStyle = entity["colour"];
-        strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
-        stroke();                                
+        strokeStyle = fillStyle;  
+        arc(x, y, 50, 0, Math.PI * 2, true); // Outer circle
+        moveTo(x+35, y);
+        arc(x, y, 35, 0, Math.PI, false); // Mouth (clockwise)
+        moveTo(x-10, y-10);
+        arc(x-15, y-10, 5, 0, Math.PI * 2, true); // Left eye
+        moveTo(x+20, y-10);
+        arc(x+15, y-10, 5, 0, Math.PI * 2, true); // Right eye
+        stroke();                             
     }
 }
 
@@ -125,6 +130,9 @@ function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
+    let tempWorld = {}
+    tempWorld[entity] = data;
+    socket.send(JSON.stringify(tempWorld));
 }
 var counter = 0;
 function addEntityWithoutName(data) {
@@ -231,15 +239,15 @@ mouse = (function() {
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'green'});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'orange'});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
+    addEntityWithoutName({'x':x,'y':y,'colour':'purple',
                           'radius':10});
 });
 
@@ -260,8 +268,12 @@ function wsSetup() {
     };
     socket.onmessage = function(msg) {  
         try {
-            debug("WebSocket Recv:" + msg.data);
-            //XXX: TODO What are you going to do here?            
+            //XXX: TODO What are you going to do here?
+            var message = JSON.parse(msg.data);
+            for (let entity in message){
+                world[entity] = message[entity];
+            }
+            drawNextFrame(); 
         } catch (e) {
             alert("socket on message: " + e);
         }
